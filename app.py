@@ -1,147 +1,161 @@
-
 import streamlit as st
+import pandas as pd
 import pickle
-import numpy as np
 
-model = pickle.load(open("cardiorisk_model.pkl", "rb"))
-scaler = pickle.load(open("scaler.pkl", "rb"))
+model = pickle.load(open("car_price_model.pkl", "rb"))
+df = pd.read_csv("cleaned_car_data.csv")
 
 st.set_page_config(
-    page_title="CardioRisk AI",
-    page_icon="❤️",
+    page_title="AutoValue AI",
+    page_icon="sports_car_cropped.png",
     layout="wide"
 )
 
-st.title("❤️ CardioRisk AI")
-st.subheader("AI-Powered Heart Risk Assessment System")
-
-st.info("Please fill all required fields (*) for the most accurate prediction.")
-
-st.markdown("---")
-
-st.header("👤 Personal Information")
-
-col1, col2 = st.columns(2)
-
-with col1:
-    age = st.number_input("Age *", 1, 120, 30)
-
-with col2:
-    sex_text = st.selectbox("Sex *", ["Male", "Female"])
-
-sex = 1 if sex_text == "Male" else 0
-
-st.markdown("---")
-
-st.header("🏥 Clinical Measurements")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    trestbps = st.number_input("Resting Blood Pressure *", 50, 250, 120)
-
-with col2:
-    chol = st.number_input("Cholesterol *", 100, 600, 200)
-
-with col3:
-    thalach = st.number_input("Maximum Heart Rate *", 50, 250, 150)
-
-st.markdown("---")
-
-st.header("🩺 Medical Indicators")
-
-cp_text = st.selectbox(
-    "Chest Pain Type *",
-    ["Typical Angina", "Atypical Angina", "Non-Anginal Pain", "Asymptomatic"]
-)
-
-cp_map = {
-    "Typical Angina": 0,
-    "Atypical Angina": 1,
-    "Non-Anginal Pain": 2,
-    "Asymptomatic": 3
+st.markdown("""
+<style>
+.stApp {
+    background: linear-gradient(135deg,#0f172a,#1e293b);
 }
-cp = cp_map[cp_text]
 
-fbs_text = st.selectbox("Fasting Blood Sugar > 120 mg/dL ? *", ["No", "Yes"])
-fbs = 1 if fbs_text == "Yes" else 0
+.block-container {
+    padding-top: 2rem;
+}
 
-exang_text = st.selectbox("Exercise Induced Angina *", ["No", "Yes"])
-exang = 1 if exang_text == "Yes" else 0
+label {
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    color: #f8fafc !important;
+    font-style: italic !important;
+}
 
-restecg = st.selectbox("Resting ECG Result *", [0, 1, 2])
+.stSelectbox div[data-baseweb="select"] > div {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #38bdf8;
+}
 
-oldpeak = st.number_input(
-    "ST Depression (oldpeak) *",
-    min_value=0.0,
-    max_value=10.0,
-    value=1.0
-)
+.stNumberInput input {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #38bdf8;
+}
 
-slope = st.selectbox("Slope *", [0, 1, 2])
+.stButton > button {
+    width: 100%;
+    background: linear-gradient(90deg,#0284c7,#38bdf8);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 14px;
+    font-size: 18px;
+    font-weight: 700;
+    font-style: italic;
+}
 
-ca = st.selectbox("Number of Major Vessels (ca) *", [0, 1, 2, 3, 4])
+.stButton > button:hover {
+    background: linear-gradient(90deg,#0369a1,#0ea5e9);
+    color: white;
+}
 
-thal = st.selectbox("Thalassemia *", [0, 1, 2, 3])
+.result-card {
+    background: linear-gradient(135deg,#0284c7,#0ea5e9);
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    margin-top: 25px;
+    box-shadow: 0 10px 25px rgba(14,165,233,0.25);
+}
 
-st.markdown("---")
+.result-title {
+    font-size: 18px;
+    color: #e0f2fe;
+    font-style: italic;
+}
 
-if st.button("🔍 Analyze Risk"):
+.result-price {
+    font-size: 40px;
+    font-weight: 800;
+    color: white;
+    margin-top: 6px;
+}
+</style>
+""", unsafe_allow_html=True)
 
-    patient_data = np.array([[
-        age,
-        sex,
-        cp,
-        trestbps,
-        chol,
-        fbs,
-        restecg,
-        thalach,
-        exang,
-        oldpeak,
-        slope,
-        ca,
-        thal
-    ]])
+# Header
+col1, col2 = st.columns([1, 4])
 
-    patient_data_scaled = scaler.transform(patient_data)
+with col1:
+    st.image("sports_car_cropped.png", width=140)
 
-    prediction = model.predict(patient_data_scaled)
-    probability = model.predict_proba(patient_data_scaled)
+with col2:
+    st.markdown(
+        """
+        <h1 style="
+        color:#f8fafc;
+        font-size:58px;
+        font-weight:800;
+        margin-bottom:0px;">
+        AutoValue AI
+        </h1>
 
-    risk_score = probability[0][1] * 100
-
-    st.markdown("---")
-    st.subheader("📊 Assessment Result")
-
-    st.metric("Heart Disease Risk Score", f"{risk_score:.2f}%")
-
-    st.progress(int(risk_score))
-
-    if risk_score < 40:
-        st.success("🟢 Low Risk of Heart Disease")
-        st.write("Recommendation: Maintain a healthy lifestyle and continue regular checkups.")
-
-    elif risk_score < 70:
-        st.warning("🟡 Moderate Risk of Heart Disease")
-        st.write("Recommendation: Consider consulting a healthcare professional for further evaluation.")
-
-    else:
-        st.error("🔴 High Risk of Heart Disease")
-        st.write("Recommendation: Please consult a healthcare professional as soon as possible.")
-
-    st.markdown("---")
-
-    st.subheader("📋 Patient Summary")
-
-    st.write(f"Age: {age}")
-    st.write(f"Sex: {sex_text}")
-    st.write(f"Blood Pressure: {trestbps}")
-    st.write(f"Cholesterol: {chol}")
-    st.write(f"Maximum Heart Rate: {thalach}")
-
-    st.markdown("---")
-
-    st.warning(
-        "Disclaimer: This tool is for educational purposes only and does not replace professional medical advice."
+        <p style="
+        color:#cbd5e1;
+        font-size:20px;
+        font-style:italic;
+        margin-top:0px;">
+        Smart Used Car Price Prediction System
+        </p>
+        """,
+        unsafe_allow_html=True
     )
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+left, center, right = st.columns([1, 2, 1])
+
+with center:
+    company = st.selectbox("Car Brand", sorted(df["company"].unique()))
+
+    car_name = st.selectbox(
+        "Car Model",
+        sorted(df[df["company"] == company]["name"].unique())
+    )
+
+    year = st.number_input(
+        "Manufacturing Year",
+        min_value=1995,
+        max_value=2026,
+        value=2015
+    )
+
+    fuel_type = st.selectbox("Fuel Type", sorted(df["fuel_type"].unique()))
+
+    kms_driven = st.number_input(
+        "Kilometers Driven",
+        min_value=0,
+        max_value=300000,
+        value=50000
+    )
+
+    predict = st.button("Predict Price")
+
+    if predict:
+        input_df = pd.DataFrame({
+            "name": [car_name],
+            "company": [company],
+            "year": [year],
+            "kms_driven": [kms_driven],
+            "fuel_type": [fuel_type]
+        })
+
+        prediction = model.predict(input_df)[0]
+
+        st.markdown(
+            f"""
+            <div class="result-card">
+                <div class="result-title">Predicted Market Value</div>
+                <div class="result-price">₹ {int(prediction):,}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )

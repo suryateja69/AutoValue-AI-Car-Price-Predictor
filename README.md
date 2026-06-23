@@ -1,5 +1,6 @@
 # 🚗 AutoValue AI
 
+AutoValue AI is live now: https://autovalue-ai-car-price-predictor-fndknahtx9cpak96pdpa53.streamlit.app/
 ### Smart Used Car Price Prediction System
 
 AutoValue AI is a Machine Learning web application that predicts the market value of used cars based on:
